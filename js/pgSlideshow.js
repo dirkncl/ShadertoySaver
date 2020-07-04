@@ -65,7 +65,7 @@ function RefreshResults()
 
     str = "s=" + encodeURIComponent(str) + "&nt=0&nl=0";;
 
-    gData.mHttpReq.open("POST", "./shadertoy/"+ gShaderIDs[id] + ".json", true);
+    gData.mHttpReq.open("GET", "./shadertoy/"+ gShaderIDs[id] + ".json", true);
     gData.mHttpReq.responseType = "json";
     gData.mHttpReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     gData.mHttpReq.onload = function ()
