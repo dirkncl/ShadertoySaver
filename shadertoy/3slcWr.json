@@ -1,0 +1,29 @@
+[{
+  "ver":"0.1",
+  "info":{"id":"3slcWr","date":"1584566560","viewed":22300,"name":"Black hole ray marching","username":"Onigiri","description":"A simple black hole made with ray marching","likes":84,"published":3,"flags":0,"tags":["raymarching","blackhole"],"hasliked":0},
+  "renderpass":[{
+    "inputs":[{
+      "id":"XdX3zn",
+      "filepath":".\/media\/a\/488bd40303a2e2b9a71987e48c66ef41f5e937174bf316d3ed0e86410784b919.jpg",
+      "previewfilepath":".\/media\/ap\/488bd40303a2e2b9a71987e48c66ef41f5e937174bf316d3ed0e86410784b919.jpg",
+      "type":"cubemap",
+      "channel":0,
+      "sampler":{
+        "filter":"mipmap",
+        "wrap":"clamp",
+        "vflip":"false",
+        "srgb":"false",
+        "internal":"byte"
+      },
+      "published":1
+    }],
+    "outputs":[{
+      "id":"4dfGRr",
+      "channel":0
+    }],
+    "code":"float hash(vec3 p) {\n    p = fract(p * 0.3183099 + 0.1);\n    p *= 17.0;\n    return fract(p.x * p.y * p.z * (p.x + p.y + p.z));\n}\n\nfloat noise(vec3 x) {\n    vec3 i = floor(x);\n    vec3 f = fract(x);\n    f = f * f * (3.0 - 2.0 * f);\n    return mix(mix(mix(hash(i + vec3(0, 0, 0)), \n                       hash(i + vec3(1, 0, 0)), f.x),\n                   mix(hash(i + vec3(0, 1, 0)), \n                       hash(i + vec3(1, 1, 0)), f.x), f.y),\n               mix(mix(hash(i + vec3(0, 0, 1)), \n                       hash(i + vec3(1, 0, 1)), f.x),\n                   mix(hash(i + vec3(0, 1, 1)), \n                       hash(i + vec3(1, 1, 1)), f.x), f.y), f.z);\n}\n\nmat2 rotate(float a) {\n    float s = sin(a);\n    float c = cos(a);\n    return mat2(c, -s, s, c);\n}\n\nfloat sphere(vec4 s) {\n    return length(s.xyz) - s.w;\n}\n\nvec4 getGlow(float minPDist) {\n    float mainGlow = minPDist * 1.2;\n    mainGlow = pow(mainGlow, 32.0);\n    mainGlow = clamp(mainGlow, 0.0, 1.0);\n    float outerGlow = minPDist * 0.4;\n    outerGlow = pow(outerGlow, 2.0);\n    outerGlow = clamp(outerGlow, 0.0, 1.0);\n    vec4 glow = vec4(10, 5, 3, mainGlow);\n    glow += vec4(0, 0, 0, outerGlow);\n    glow.a = min(glow.a, 1.0);\n    return glow;\n}\n\nfloat getDist(vec3 p) {\n    vec3 diskPos = -p;\n    float diskDist = sphere(vec4(diskPos, 5.0));\n    diskDist = max(diskDist, diskPos.y - 0.01);\n    diskDist = max(diskDist, -diskPos.y - 0.01);\n    diskDist = max(diskDist, -sphere(vec4(-p, 1.5) * 10.0));\n    if(diskDist < 2.0)\n    {\n        vec3 c = vec3(length(diskPos), diskPos.y, atan(diskPos.z + 1.0, diskPos.x + 1.0) * 0.5);\n        c *= 10.0;\n        diskDist += noise(c) * 0.4;\n        diskDist += noise(c * 2.5) * 0.2;\n    }\n    return diskDist;\n}\n\nvec4 raymarch(vec3 ro, vec3 rd) {\n    vec3 p = ro;\n    float glow = 0.0;\n    for (int i = 0; i < 700; i++) {\n        float dS = getDist(p);\n        glow = max(glow, 1.0 \/ (dS + 1.0));\n        vec3 bdir = normalize(-p);\n        float bdist = length(p);\n        dS = min(dS, bdist) * 0.04;\n        if(dS > 30.0) break;\n        if(bdist < 1.0) {\n            vec4 gcol = getGlow(glow);\n            vec4 c = vec4(0.0, 0.0, 0.0, 1.0);\n            c.rgb = mix(c.rgb, gcol.rgb, gcol.a);\n            return c;\n        }\n        bdist = pow(bdist + 1.0, 2.0);\n        bdist = dS * 1.0 \/ bdist;\n        rd = mix(rd, bdir, bdist);\n        p += rd * max(dS, 0.01);\n    }\n    vec4 c = vec4(texture(iChannel0, rd).rgb * 0.2, 1.0);\n    vec4 gcol = getGlow(glow);\n    c.rgb = mix(c.rgb, gcol.rgb, gcol.a);\n    return c;\n}\n\nvoid mainImage( out vec4 fragColor, in vec2 fragCoord) {\n    vec2 uv = (fragCoord - 0.5 * iResolution.xy) \/ iResolution.y;\n    vec3 ro = vec3(0, cos(iTime * 0.5) * 10.0, sin(iTime * 0.5) * 10.0);\n    vec3 rd = normalize(vec3(uv.x, uv.y, 1));\n    rd.yz *= rotate(iTime * 0.5 + 1.57);\n    vec4 c = raymarch(ro, rd);\n    fragColor = vec4(c.rgb, 1.0);\n}",
+    "name":"Image",
+    "description":"",
+    "type":"image"
+  }]
+}]
