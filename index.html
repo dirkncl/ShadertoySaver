@@ -1,0 +1,402 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    
+<title>Slideshow - Shadertoy BETA</title>
+<meta charset="utf-8" />
+<meta name="Keywords" content="shadertoy, shader toy, quilez, inigo, jeremias, pol, fractals, demoscene, computer graphics, mathematics, rendering, demo, 3D, realtime, shader, raytracing, raymarching, webgl, glsl" />
+<meta name="Description" content="Build shaders, share them, and learn from the best community." />
+<meta name="Author" content="Beautypi" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<link rel="image_src" href="https://www.shadertoy.com./img/logo.png" />
+<link rel="apple-touch-icon" href="./img/launch_icon_57.png"/>
+<link rel="apple-touch-icon" sizes="72x72" href="./img/launch_icon_72.png"/>
+<link rel="apple-touch-icon" sizes="114x114" href="./img/launch_icon_114.png"/>
+<link rel="shortcut icon" href="./img/favicon.ico"/>
+    <script src="./js/style.js?v=81"></script>
+    <script src="./lib/piLibs.js?v=81"></script>
+    <script src="./js/effect.js?v=81"></script>
+    <script src="./js/pgSlideshow.js?v=81"></script>
+    
+    
+    <style>
+    .shaderPreview
+    {
+    display: block;
+    background-color: #000000;
+    background-image: url("./img/loading.gif");
+    background-repeat: no-repeat;
+    background-position: center;
+    padding: 0px;
+    margin: 0px;
+    border: 0px solid #000000;
+    border-radius: 8px;
+    width:100%;
+    height:100%;
+    position: absolute;
+    }
+
+    .previewInfo
+    {
+    width: 100%;
+    left: 0px;
+    top: 2px;
+    position: relative;
+    visibility: hidden;
+    }
+
+    .previewCanvas
+    {
+    left: 0px;
+    top: 0px;
+    padding: 0px;
+    margin: 0px;
+    position: absolute;
+    cursor: pointer;
+    width:100%;
+    height:100%;
+    visibility: hidden;
+    border-radius: 8px;
+    border: 0px solid #000000;
+    }
+
+    .previewText
+    {
+        text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 1px;
+    }
+
+    .previewTextUser
+    {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-left: 3px;
+    }
+
+    .previewStats
+    {
+    padding-right: 1px;
+    right: 0px;
+    top: 0px;
+    position: absolute;
+    }
+
+    .previewErrorContainer
+    {
+    left:0px;
+    top:0px;
+    width:100%;
+    height:100%;
+    padding:0px;
+    margin:0px;
+    //position:absolute;
+    background-color:#000000;
+    border-radius:8px;
+    cursor:pointer;
+    visibility:hidden;
+    }
+
+    .previewErrorMessage
+    {
+    top:50%;
+    position:absolute;
+    width:100%;
+    text-align:center;
+    padding:0;
+    margin:auto;
+    color:#ff0000;
+    font-size:2em;
+    font-style:italic;
+    }
+
+    .previewNoGLContainter
+    {
+    left:0px;
+    top:0px;
+    width:100%;
+    height:100%;
+    padding:0px;
+    margin:0px;
+    position:absolute;
+    background-color:#000000;
+    border-radius:8px;
+    cursor:pointer;
+    pointer-events:none;
+    visibility:hidden;
+    font-size:2em;
+    }
+
+    .previewNoGLMessage
+    {
+    width:86%;
+    height:90%;
+    padding-left:7%;
+    padding-right:7%;
+    padding-top:10%;
+    padding-bottom:0px;
+    color:#ff0000;
+    position:absolute;
+    visibility:hidden;
+    }
+
+    .previewThumbnailContainer
+    {
+    width:100%;
+    height:100%;
+    left:0px;
+    top:0px;
+    padding:0px;
+    margin:0px;
+    position:absolute;
+    cursor:pointer;
+    visibility:hidden;
+    border-radius:8px;
+    border:0px solid #000000;
+    }
+
+    .previewThumbnailImage
+    {
+    width:100%;
+    height:100%;
+    left:0px;
+    top:0px;
+    padding:0px;
+    margin:0px;
+    position:absolute;
+    cursor:pointer;
+    border-radius:8px;
+    border:0px solid #000000;
+    }
+
+    .previewThumbnailIcon
+    {
+    width:14%;
+    height:14%;
+    left:0px;
+    top:0px;
+    padding:0px;
+    padding-top:12px;
+    margin:0px;
+    position:absolute;
+    color:#ffffff;
+    background-color:#ff4000;
+    border-radius:0px 0px 8px 0px;
+    text-align:center;
+    }
+
+
+    .previewUIContainter
+    {
+    display: block;
+    right:0px;
+    top:0px;
+    padding:0px;
+    margin:0px;
+    position:absolute;
+    //cursor:pointer;
+    //pointer-events:none;
+    visibility:hidden;
+    }
+
+    .isVisible
+    {
+    visibility:visible;
+    }
+
+
+</style>
+
+<script>
+    
+
+    function previewHide(me)
+    {
+    me.mBase.style.visibility = "hidden";
+    me.mCanvas.style.visibility = "hidden";
+    me.mCanvas2D.style.visibility = "hidden";
+    me.mNoWebGL.style.visibility = "hidden";
+    me.mError.style.visibility = "hidden";
+    me.mCont.style.visibility = "hidden";
+    }
+
+    function previewShowRender(me)
+    {
+    me.mBase.style.visibility = "visible";
+    me.mCanvas.style.visibility = "visible";
+    me.mCanvas2D.style.visibility = "hidden";
+    me.mNoWebGL.style.visibility = "hidden";
+    me.mError.style.visibility = "hidden";
+    me.mCont.style.visibility = "visible";
+    }
+
+    function previewShowScreenshot(me)
+    {
+    me.mBase.style.visibility = "visible";
+    me.mCanvas.style.visibility = "hidden";
+    me.mCanvas2D.style.visibility = "visible";
+    me.mNoWebGL.style.visibility = "hidden";
+    me.mError.style.visibility = "hidden";
+    me.mCont.style.visibility = "visible";
+    }
+
+    function previewShowLoading(me)
+    {
+    me.mBase.style.visibility = "visible";
+    me.mCanvas.style.visibility = "hidden";
+    me.mCanvas2D.style.visibility = "hidden";
+    me.mNoWebGL.style.visibility = "hidden";
+    me.mError.style.visibility = "hidden";
+    me.mCont.style.visibility = "hidden";
+
+    me.mLink.style.visibility = "visible";
+    me.mBase.style.backgroundColor = "#ff0000;"
+    me.mCont.style.visibility = "visible";
+
+    }
+
+    function previewShowNoWebGL(me, shaderID)
+    {
+    me.mBase.style.visibility = "visible";
+    me.mCanvas.style.visibility = "hidden";
+    me.mCanvas2D.style.visibility = "hidden";
+    me.mNoWebGL.style.visibility = "visible";
+    me.mError.style.visibility = "visible";
+    me.mThumbnailImgNoWebGL.onerror = function(ev) 
+      { 
+      me.mThumbnailImgNoWebGL.style.visibility="hidden"; 
+      me.mMessageNoWebGL.style.visibility="visible"; 
+      };
+    me.mThumbnailImgNoWebGL.src = "./media/shaders/" + shaderID + ".jpg";
+    }
+
+    function previewShowError(me)
+    {
+    me.mBase.style.visibility = "visible";
+    me.mCanvas.style.visibility = "hidden";
+    me.mCanvas2D.style.visibility = "hidden";
+    me.mNoWebGL.style.visibility = "hidden";
+    me.mError.style.visibility = "visible";
+    me.mCont.style.visibility = "visible";
+    }
+
+    function previewLoadScreenshot( me, cbSuccess, cbError, shaderID )
+    {
+    var url = "./media/shaders/" + shaderID + ".jpg";
+    me.mPreview.mThumbnailImg.onload = cbSuccess;
+    me.mPreview.mThumbnailImg.onerror = function(ev) { cbError(); };
+    me.mPreview.mThumbnailImg.src = url;
+    }
+
+    function resizePreview(me, w, h)
+    {
+        me.mCanvas.width = w;
+        me.mCanvas.height = h;
+    }
+
+    function createPreview(id)
+    {
+        
+        document.getElementById("info").getElementsByTagName("span").textContent = "Playing "+gShaderIDs.length+" shaders"
+        
+        var bar = document.getElementById( "Preview_"+id+"_Canvas" );
+        bar.width = bar.offsetWidth;
+        bar.height = bar.offsetHeight;
+        bar.mId = id;
+
+        return { mBase: document.getElementById( "Preview_"+id+"_Container" ),
+        mLink: document.getElementById( "Preview_"+id+"_Link" ),
+        mCanvas: bar,
+        mCont: document.getElementById( "Preview_"+id+"_Info" ),
+        mTextA: document.getElementById( "Preview_"+id+"_Text" ),
+        mTextB: document.getElementById( "Preview_"+id+"_TextUser" ),
+        mTextC: document.getElementById( "Preview_"+id+"_Stats" ),
+        mNoWebGL: document.getElementById( "Preview_"+id+"_NoWebGL" ),
+        mError: document.getElementById( "Preview_"+id+"_Error" ),
+        mCanvas2D: document.getElementById( "Preview_"+id+"_Thumnail" ),
+        mThumbnailImg: document.getElementById( "Preview_"+id+"_ThumnailImage" ),
+        mThumbnailImgNoWebGL: document.getElementById( "Preview_"+id+"_ThumnailImageNoWebGL" ),
+        mMessageNoWebGL: document.getElementById( "Preview_"+id+"_MessageNoWebGL"),
+        mUI: document.getElementById( "Preview_"+id+"_UI" )
+        };
+    }
+</script>
+
+
+    <script>
+    function randomArray(Arr) {var newArr = Arr;var idx = newArr.length, temp, rand;while (0 !== idx) {rand = Math.floor(Math.random() * idx);idx -= 1;temp = newArr[idx];newArr[idx] = newArr[rand];newArr[rand] = temp;}return newArr;}
+    
+    var st = decodeURIComponent(window.location.search.substr(1)).replace(/\+/g, " ").replace('?',''); if(st.indexOf('&')!=-1) { st=st.split('&'); st[1] = ""; st = st[0]; }; if(st.indexOf('=')!=-1) { st = "" };
+    
+    gData.mShaderTime = Number(st)||40;//index.html?40
+    
+    var ShaderIDs = ["3sGSR3","3slcWr","3syGDc","4d2XWV","4dGyRh","4djSDy","4dt3zn","4lBGRh","4lyfzw","4sfGWX","4tcXRr","ldB3Rz","llSGDh","lsBSDm","lsXGz8","lt3BW2","ltcfDj","MdKGRw","Ml3fWj","MlcBDj","MsGczV","Mt3BDj","MtVXRd","tdKXzc","tltXWM","ttXGWH","wdG3D3","WdVGWK","wdVSzy","wlGGRD","wlGGRV","wljczh","wltXWM","wlVGRz","Ws3XWl","WsK3DK","wsKSzc","WtsGzB","wttSD7","XdBGzd","XdS3Rt","XljGDy","XsX3RB","XsXXWS"];
+    
+    var gShaderIDs = randomArray( ShaderIDs );
+
+    //var gThemeName = "classic";
+    </script>
+    <style>
+    div#wrapper
+    {
+        text-align: center;
+        padding-top: 32px;
+    }
+    .searchResult
+    {   
+        color:ivory;
+        margin: auto;
+        padding: 0px;
+        width: 50%;
+    }
+    .searchResultContainer
+    {
+        width: 100%;
+        padding-bottom:56.25%;
+        height: 0;
+        position: relative;
+    }
+    
+    @keyframes infoFile {  
+      0% { color: gold; }
+      50% { color: red; }
+      100% { color: ivory; }
+    }
+    @-webkit-keyframes infoFile {
+      0% { color: gold; }
+      50% { color: red; }
+      100% { color: ivory; }
+    }
+    #infoFile {
+      -webkit-animation: infoFile 1s linear infinite;
+      -moz-animation: infoFile 1s linear infinite;
+      animation: infoFile 1s linear infinite;
+    } 
+    
+    </style>
+</head>
+
+<body onload="resultsInit(3,null,null)" onresize="resultsResize()">
+
+<!-- content ================================================================================== -->
+
+<div id="content">
+  
+  <div id="wrapper">
+    <div id="info">
+      <span style="font-size:1.5em">
+        <br>
+        <br>
+      </span>
+    </div>
+  </div>
+
+  <div class="searchResult"><center><div id="infoFile" style="margin-left:25%;margin-right:25%;margin-top:10px;color:ivory;font-size:1.5em"></div></center><div class='searchResultContainer' id='Preview_0_Container'>  <a class='shaderPreview searchResultCanvas' id='Preview_0_Link'>    <canvas class='previewCanvas searchResultCanvas' id='Preview_0_Canvas'></canvas>    <div class='previewNoGLContainter searchResultCanvas' id='Preview_0_NoWebGL'>        <img class='previewThumbnailImage' id='Preview_0_ThumnailImageNoWebGL'></img>        <div class='previewNoGLMessage' id='Preview_0_MessageNoWebGL'>No Screenshot Availabe</div>    </div>    <div class='previewErrorContainer searchResultCanvas' id='Preview_0_Error'>        <div class='previewErrorMessage'>Shader Error</div>    </div>    <div class='previewThumbnailContainer searchResultCanvas' id='Preview_0_Thumnail'>        <img class='previewThumbnailImage' id='Preview_0_ThumnailImage'></img>        <div class='previewThumbnailIcon'>Preview</div>    </div>  </a></div><div class='previewInfo' id='Preview_0_Info'> <span class='previewText'  id='Preview_0_Text'></span><span class='previewTextUser'  id='Preview_0_TextUser'></span>  <span class='previewStats' id='Preview_0_Stats'></span></div>
+  </div>
+
+  
+</div>
+</body>
+</html>
