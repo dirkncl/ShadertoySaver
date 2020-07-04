@@ -3898,7 +3898,7 @@ Effect.prototype.newScriptJSON = function( jobj )
             if (this.mForceMuted && rpass.type == "sound") continue;
 
             var shaderStr = rpass.code;
-             console.log(shaderStr)
+             
             var result = this.NewShader(shaderStr, j);
 
             if (result != null) {
